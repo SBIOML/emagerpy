@@ -1,6 +1,7 @@
 numpy
 scipy
 pyqt6
+pyqtgraph
 bleak
 pyserial
 torch
