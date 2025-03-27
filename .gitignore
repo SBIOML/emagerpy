@@ -1,6 +1,7 @@
 # App specifics
 *.log
 lightning_logs/
+media-test/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

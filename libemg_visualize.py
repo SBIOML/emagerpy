@@ -4,20 +4,11 @@ if __name__ == "__main__":
     from libemg.filtering import Filter
     import time
     # from utils.find_usb import virtual_port
+    from config import *
 
-    VIRTUAL = False
-    FILTER = False
-    SAMPLING = 1010
-
-    PORT = None
-    # if VIRTUAL:
-    #     DATASET_PATH = "C:\GIT\Datasets\EMAGER/"
-    #     PORT = virtual_port(DATASET_PATH)
-    #     print("Data generator thread started")
-    #     time.sleep(3)
 
     # Create data handler and streamer
-    p, smi = emager_streamer(specified_port=PORT)
+    p, smi = emager_streamer()
     print(f"Streamer created: process: {p}, smi : {smi}")
     odh = OnlineDataHandler(shared_memory_items=smi)
 

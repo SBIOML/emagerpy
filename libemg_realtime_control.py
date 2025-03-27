@@ -20,21 +20,9 @@ from multiprocessing.connection import Connection
 from multiprocessing import Lock, Process, Pipe
 import numpy as np
 import threading
-
+from config import *
 
 eutils.set_logging()
-
-MODEL_PATH = "C:\GIT\Datasets/Libemg/TestVideo/libemg_torch_cnn_TestVideo_829_24-10-28_21h37.pth"
-MEDIA_PATH = "./media-test/"
-
-NUM_CLASSES = 5
-WINDOW_SIZE=200
-WINDOW_INCREMENT=10
-MAJORITY_VOTE=7
-SAMPLING=1010
-
-VIRTUAL = False
-
 
 # PREDICTOR
 def update_labels_process(gui:realtime_gui.RealTimeGestureUi, smm_items:list, stop_event:threading.Event, conn:Connection=None):
@@ -72,16 +60,8 @@ def update_labels_process(gui:realtime_gui.RealTimeGestureUi, smm_items:list, st
 
 def run_predicator(conn: Connection=None):
 
-    # Get data port
-    PORT = None
-    # if VIRTUAL:
-    #     DATASET_PATH = "C:\GIT\Datasets\EMAGER/"
-    #     PORT = virtual_port(DATASET_PATH)
-    #     print("Data generator thread started")
-    #     time.sleep(3)
-
     # Create data handler and streamer
-    p, smi = emager_streamer(specified_port=PORT)
+    p, smi = emager_streamer()
     print(f"Streamer created: process: {p}, smi : {smi}")
     odh = OnlineDataHandler(shared_memory_items=smi)
 

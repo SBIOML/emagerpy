@@ -9,19 +9,8 @@ import models.models as etm
 import numpy as np
 import datetime
 import matplotlib.pyplot as plt
+from config import *
 
-
-BASE_PATH = "C:/GIT/Datasets/Libemg/"
-SESSION = "TestVideo"
-DATASETS_PATH = f"{BASE_PATH}{SESSION}/"
-SAVE_PATH = f"{BASE_PATH}{SESSION}/"
-
-NUM_CLASSES = 5
-NUM_REPS = 5
-WINDOW_SIZE = 200
-WINDOW_INCREMENT = 10
-EPOCH = 10
-SAMPLING = 1010
 
 def prepare_data(dataset_folder):
         classes_values = [str(num) for num in range(NUM_CLASSES)]
