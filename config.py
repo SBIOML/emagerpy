@@ -16,8 +16,8 @@ VIRTUAL = False
 PORT = None
 
 BASE_PATH = "C:/GIT/Datasets/Libemg/"
-SESSION = "TestLib"
-MODEL_NAME = "libemg_torch_cnn_TestVideo_829_24-10-28_21h37.pth"
+SESSION = "Testsgt"
+MODEL_NAME = "libemg_torch_cnn_Testsgt_936_25-03-27_17h06.pth"
 MEDIA_PATH = "./media-test/"
 MODEL_PATH = f"{BASE_PATH}{SESSION}/{MODEL_NAME}"
 DATAFOLDER = f"{BASE_PATH}{SESSION}/"

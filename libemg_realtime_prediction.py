@@ -6,8 +6,8 @@ from libemg.feature_extractor import FeatureExtractor
 from libemg.streamers import emager_streamer
 from libemg.filtering import Filter
 from libemg.shared_memory_manager import SharedMemoryManager
+from libemg.environments.controllers import ClassifierController
 
-from utils.find_usb import virtual_port
 import models.models as etm
 import utils.utils as eutils
 from visualization import realtime_gui
@@ -23,29 +23,42 @@ from config import *
 eutils.set_logging()
 
 
-def update_labels_process(gui:realtime_gui.RealTimeGestureUi, smm_items:list, stop_event:threading.Event):
-    smm = SharedMemoryManager()
+def update_labels_process(gui:realtime_gui.RealTimeGestureUi, smm_items:list, stop_event:threading.Event, ctrl:ClassifierController):
+
+    # smm = SharedMemoryManager()
     gestures_dict = gjutils.get_gestures_dict(MEDIA_PATH)
     images = gjutils.get_images_list(MEDIA_PATH)
     
     while not stop_event.is_set():
-        check = True
-        for item in smm_items:
-            tag, shape, dtype, lock = item
-            if not smm.find_variable(tag, shape, dtype, lock):
-                # wait for the variable to be created
-                check = False
-                break
-        if not check:
-            continue
+        # # Check if the shared memory item is created
+        # check = True
+        # for item in smm_items:
+        #     tag, shape, dtype, lock = item
+        #     if not smm.find_variable(tag, shape, dtype, lock):
+        #         # wait for the variable to be created
+        #         check = False
+        #         break
+        # if not check:
+        #     continue
 
         # Read from shared memory
-        classifier_output = smm.get_variable("classifier_output")
+        # classifier_output = smm.get_variable("classifier_output")
+        
+        
+        map = ctrl.info_function_map
+        print(f"map output: {map}")
+        
+        data_pred = ctrl.get_data(map.keys())
+        print(f"data_pred: {data_pred}")
+        classifier_output = ctrl._get_action()
+        print(f"classifier_output: {classifier_output}")
+        
+        
         # The most recent output is at index 0
         latest_output = classifier_output[0]
         output_data = {
             "timestamp": np.double(latest_output[0]),
-            "prediction": int(latest_output[1]),
+            "prediction": int(latest_output[0]),
             "probability": np.double(latest_output[2]),
         }
         print(f"Sending data: ({(output_data['prediction'])}) : {output_data} ")
@@ -56,9 +69,8 @@ def update_labels_process(gui:realtime_gui.RealTimeGestureUi, smm_items:list, st
 
         time.sleep(0.45)
 
-def run():
 
-    
+def run():
 
     # Create data handler and streamer
     p, smi = emager_streamer()
@@ -82,20 +94,22 @@ def run():
     model = etm.EmagerCNN((4, 16), NUM_CLASSES, -1)
     try:
         model.load_state_dict(torch.load(MODEL_PATH))
+        model.eval()
     except RuntimeError as e:
         print(f"Error loading model: {e}")
         # Handle error (e.g., exit or attempt a recovery)
+        
+    ctrl = ClassifierController('predictions', NUM_CLASSES)
 
-    classi = EMGClassifier()
+    classi = EMGClassifier(model)
     classi.add_majority_vote(MAJORITY_VOTE)
-    classi.classifier = model.eval()
 
     # Ensure OnlineEMGClassifier is correctly set up for data handling and inference
-    smm_items=[["classifier_output", (100,3), np.double, Lock()], #timestamp, class prediction, confidence
-                        ["classifier_input", (100,1+64), np.double, Lock()], # timestamp, <- features ->
-                        ["adapt_flag", (1,1), np.int32, Lock()],
-                        ["active_flag", (1,1), np.int8, Lock()]]
-    oclassi = OnlineEMGClassifier(classi, WINDOW_SIZE, WINDOW_INCREMENT, odh, fg, std_out=False, smm=True, smm_items=smm_items)
+    smm_items=[
+            ["classifier_output", (100,4), np.double, Lock()], #timestamp, class prediction, confidence, velocity
+            ['classifier_input', (100, 1 + 64), np.double, Lock()], # timestamp <- features ->
+        ]
+    oclassi = OnlineEMGClassifier(classi, WINDOW_SIZE, WINDOW_INCREMENT, odh, fg, std_out=False, smm=False, smm_items=None)
 
 
     # Create GUI
@@ -105,7 +119,7 @@ def run():
     gui = realtime_gui.RealTimeGestureUi(files)
     
     stop_event = threading.Event()
-    updateLabelProcess = threading.Thread(target=update_labels_process, args=(gui, smm_items, stop_event))
+    updateLabelProcess = threading.Thread(target=update_labels_process, args=(gui, smm_items, stop_event, ctrl))
 
     try:
         print("Starting classification...")
