@@ -1,5 +1,7 @@
 from control.constants import *
 import utils.gestures_json as gj
+from config import *
+from libemg.gui import GUI
 
 def log(message, mode=Logger.INFO):
     print(message)
@@ -10,7 +12,11 @@ OPEN_FIGER_POS = 0
 CLOSE_FIGER_POS = 1000
 HALF_OPEN_FIGER_POS = 500
 
-gestures_dict = gj.get_gestures_dict("gestures/")
+try:
+    gestures_dict = gj.get_gestures_dict(MEDIA_PATH)
+except FileNotFoundError:
+    GUI.download_gestures(MEDIA_PATH)
+    gestures_dict = gj.get_gestures_dict(MEDIA_PATH)
 
 def decode_gesture(gesture):
     if isinstance(gesture, int):
