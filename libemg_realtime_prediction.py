@@ -45,29 +45,35 @@ def update_labels_process(gui:realtime_gui.RealTimeGestureUi, smm_items:list, st
         # classifier_output = smm.get_variable("classifier_output")
         
         
-        map = ctrl.info_function_map
-        print(f"map output: {map}")
+        # Get predictions using the controller
+        data = ctrl.get_data(['predictions'])
+        action = ctrl._get_action()
+        print(f"data: {data}")
+        print(f"action: {action}")
+        if data is None:
+            time.sleep(0.05)  # Wait a bit if no data
+            continue
         
-        data_pred = ctrl.get_data(map.keys())
-        print(f"data_pred: {data_pred}")
-        classifier_output = ctrl._get_action()
-        print(f"classifier_output: {classifier_output}")
-        
+        predictions = data[0]
+        if predictions is None:
+            continue
         
         # The most recent output is at index 0
-        latest_output = classifier_output[0]
-        output_data = {
-            "timestamp": np.double(latest_output[0]),
-            "prediction": int(latest_output[0]),
-            "probability": np.double(latest_output[2]),
-        }
-        print(f"Sending data: ({(output_data['prediction'])}) : {output_data} ")
-        index = output_data["prediction"]
+        # latest_output = classifier_output[0]
+        # output_data = {
+        #     "timestamp": np.double(latest_output[0]),
+        #     "prediction": int(latest_output[0]),
+        #     "probability": np.double(latest_output[2]),
+        # }
+        # print(f"Sending data: ({(output_data['prediction'])}) : {output_data} ")
+        
+        # index = output_data["prediction"]
+        index = int(predictions)
         label = gjutils.get_label_from_index(index, images, gestures_dict)
 
         gui.update_label(label)
 
-        time.sleep(0.45)
+        time.sleep(0.01)
 
 
 def run():
@@ -109,7 +115,7 @@ def run():
             ["classifier_output", (100,4), np.double, Lock()], #timestamp, class prediction, confidence, velocity
             ['classifier_input', (100, 1 + 64), np.double, Lock()], # timestamp <- features ->
         ]
-    oclassi = OnlineEMGClassifier(classi, WINDOW_SIZE, WINDOW_INCREMENT, odh, fg, std_out=False, smm=False, smm_items=None)
+    oclassi = OnlineEMGClassifier(classi, WINDOW_SIZE, WINDOW_INCREMENT, odh, fg, std_out=True, smm=True, smm_items=smm_items)
 
 
     # Create GUI
