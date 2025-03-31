@@ -1,18 +1,13 @@
 import utils.utils as eutils
 import utils.gestures_json as gjutils
 from libemg_realtime_prediction import predicator
-from control.smart_hand_control import SmartHandControl
-from control.zeus_control import ZeusControl
+from control.interface_control import InterfaceControl
 
 from multiprocessing.connection import Connection
 from multiprocessing import Lock, Process, Pipe
 from config import *
 
 eutils.set_logging()
-
-HAND = "SMART"
-# HAND = "ZEUS"
-# HAND = "PSYONIC"
 
 USE_GUI = True
 
@@ -25,11 +20,8 @@ def run_predicator_process(conn: Connection=None):
 # COMMUNICATOR
 def run_controller_process(conn: Connection=None):
     try:
-        if HAND == "ZEUS":
-            comm_controller = ZeusControl()
-        elif HAND == "SMART":
-            comm_controller = SmartHandControl()
-
+        
+        comm_controller = InterfaceControl(hand_type="smart")
         comm_controller.connect()
         
         # Main loop to read input from stdin

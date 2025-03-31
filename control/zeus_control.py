@@ -2,6 +2,7 @@ import asyncio
 from control.ble_client import BLEDevice, scan_and_connect
 from control.gesture_decoder import decode_gesture
 from control.constants import *
+from control.interface_control import HandInterface
 import time
 
 SERVICE_UART = "6E400001-C352-11E5-953D-0002A5D5C51B"
@@ -9,8 +10,7 @@ CHAR_UART_TX = "6E400003-C352-11E5-953D-0002A5D5C51B"
 CHAR_UART_RX = "6E400002-C352-11E5-953D-0002A5D5C51B"
 NAME = "A-235328"
 
-class ZeusControl:
-
+class ZeusControl(HandInterface):
     def __init__(self, deviceName=NAME):
         self.deviceName = deviceName
         self.device:BLEDevice = None
@@ -34,6 +34,51 @@ class ZeusControl:
         self.device = None
         print("Disconnected ZeusHand")
 
+    def send_gesture(self, gesture):
+        thumb_finger_pos, index_finger_pos, middle_finger_pos, ring_finger_pos, little_finger_pos = decode_gesture(gesture)
+        self.send_finger_position(0, thumb_finger_pos)
+        self.send_finger_position(1, index_finger_pos)
+        self.send_finger_position(2, middle_finger_pos)
+        self.send_finger_position(3, ring_finger_pos)
+        self.send_finger_position(4, little_finger_pos)
+
+    def send_finger_position(self, finger, position):
+        finger_bytes = int(finger).to_bytes(1, 'big')
+        position_bytes = int(position).to_bytes(4, 'big')
+        data = bytes(finger_bytes + position_bytes)
+        self.send_data(data, data_id=0x05)
+
+    def send_data_with_id(self, data, data_id):
+        if self.device:
+            if isinstance(data, int):
+                byte_len = int(data.bit_length() // 8) + 1
+                data = int(data).to_bytes(byte_len, 'big')
+            elif isinstance(data, list):
+                data = bytes(data)
+            elif isinstance(data, str):
+                data = data.encode()
+            packet = self._write_data_packet(bytes([data_id]), data)
+            self.device.write(SERVICE_UART, CHAR_UART_RX, packet)
+
+    def send_data(self, data):
+        self.send_data_with_id(data, 0)
+
+    def read_data(self):
+        value = b''
+        if self.device:
+            value = self.device.read(SERVICE_UART, CHAR_UART_TX)
+            print(f"Reading Received: {value}")
+            frame_type, frame_data, status = self._read_data_packet(value)
+            if status == "Success":
+                print(f"Reading Received frame type: {frame_type}, frame data: {frame_data}")
+            else:
+                print(f"Reading Error: {status}")
+
+    def start_telemetry(self):
+        self.send_data_with_id(0x01, data_id=1)
+
+    def stop_telemetry(self):
+        self.send_data_with_id(0x00, data_id=1)
 
     def _read_data_packet(self, packet):
         if len(packet) < 8:
@@ -69,7 +114,6 @@ class ZeusControl:
         
         # Construct the packet
         packet = amber_spp_header + frame_header + checksum_bytes + frame_type + frame_data
-        # print(f"Sending Packet hex: {packet.hex()} | parts: {amber_spp_header}, {frame_header}, {checksum_bytes}, {frame_type}, {frame_data}")
         
         return packet
     
@@ -79,51 +123,6 @@ class ZeusControl:
             print(f"Notification Received from {sender} => frame type: {frame_type}, frame data: {frame_data}")
         else:
             print(f"Notification Error: {status}")
-
-    def read_data(self):
-        value = b''
-        if self.device:
-            value = self.device.read(SERVICE_UART, CHAR_UART_TX)
-            print(f"Reading Received: {value}")
-            # formatted_hex = ' '.join(f'{byte:02x}' for byte in memoryview(value))
-            # print(f"UART TX: {formatted_hex} \n --> {value.decode()}")
-            frame_type, frame_data, status = self._read_data_packet(value)
-            if status == "Success":
-                print(f"Reading Received frame type: {frame_type}, frame data: {frame_data}")
-            else:
-                print(f"Reading Error: {status}")
-
-    def send_data(self, data, data_id:int=0):
-        if self.device:
-            if isinstance(data, int):
-                byte_len = int(data.bit_length() // 8) + 1
-                data = int(data).to_bytes(byte_len, 'big')
-            elif isinstance(data, list):
-                data = bytes(data)
-            elif isinstance(data, str):
-                data = data.encode()
-            packet = self._write_data_packet(bytes([data_id]), data)
-            self.device.write(SERVICE_UART, CHAR_UART_RX, packet)
-
-    def start_tellemetry(self):
-        self.send_data(0x01, data_id=1)
-
-    def stop_tellemetry(self):
-        self.send_data(0x00, data_id=1)
-
-    def send_finger_position(self, finger, position):
-        finger_bytes = int(finger).to_bytes(1, 'big')
-        position_bytes = int(position).to_bytes(4, 'big')
-        data = bytes(finger_bytes + position_bytes)
-        self.send_data(data, data_id=0x05)
-
-    def send_gesture(self, gesture):
-        thumb_finger_pos, index_finger_pos, middle_finger_pos, ring_finger_pos, little_finger_pos = decode_gesture(gesture)
-        self.send_finger_position(0, thumb_finger_pos)
-        self.send_finger_position(1, index_finger_pos)
-        self.send_finger_position(2, middle_finger_pos)
-        self.send_finger_position(3, ring_finger_pos)
-        self.send_finger_position(4, little_finger_pos)
 
 
 # For Packet Validation

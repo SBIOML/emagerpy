@@ -1,14 +1,18 @@
 from control.ble_client import BLEDevice, scan_and_connect
 from control.serial_com import SerialCommunication
+from control.interface_control import HandInterface
 import time
+from control.zeus_control import decode_gesture
+
 
 SERVICE_UART = "6E400001-B5A3-F393-E0A9-E50E24DCCA9E"
 CHAR_UART_TX = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
 CHAR_UART_RX = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E"
+NAME = "testpico"
 
-class SmartHandControl:
+class SmartHandControl(HandInterface):
 
-    def __init__(self, deviceName="testpico", mode="BLE", baud_rate=115200, port=None):
+    def __init__(self, deviceName=NAME, mode="BLE", baud_rate=115200, port=None):
         self.deviceName = deviceName
         self.use_ble = False
         self.device:BLEDevice = None
@@ -18,12 +22,12 @@ class SmartHandControl:
         self.port = port
 
         mode = mode.upper()
-        if "BLE" in mode or "BLUETOOTH" in mode or "BT" in mode or "WIRELESS" in mode or "BOTH" in mode:
+        if "BLE" in mode or "BLUETOOTH" in mode or "BT" in mode or "WIRELESS" in mode in mode:
             self.use_ble = True
-        elif "SERIAL" in mode or "UART" in mode or "USB" in mode or "CABLE" in mode or "BOTH" in mode:
+        elif "SERIAL" in mode or "UART" in mode or "USB" in mode or "CABLE" in mode in mode:
             self.use_serial = True
         else:
-            raise ValueError("Invalid mode. Use 'BLE' or 'SERIAL' or 'BOTH' as mode.")
+            raise ValueError("Invalid mode. Use 'BLE' or 'SERIAL' as mode.")
         self.mode = mode
 
     def connect(self):
@@ -37,6 +41,35 @@ class SmartHandControl:
         if self.use_serial:
             self.serial = SerialCommunication(port=self.port, baud_rate=self.baud_rate)
             self.serial.open()
+
+    def disconnect(self):
+        if self.device and self.use_ble:
+            self.device.stop_notify(CHAR_UART_TX)
+            self.device.disconnect()
+        if self.serial and self.use_serial:
+            self.serial.close()
+
+    def send_gesture(self, gesture):
+        thumb_finger_pos, index_finger_pos, middle_finger_pos, ring_finger_pos, little_finger_pos = decode_gesture(gesture)
+        self.send_finger_position(0, thumb_finger_pos)
+        self.send_finger_position(1, index_finger_pos)
+        self.send_finger_position(2, middle_finger_pos)
+        self.send_finger_position(3, ring_finger_pos)
+        self.send_finger_position(4, little_finger_pos)
+        
+    def send_finger_position(self, finger, position):
+        data = b'\x01'
+        bytes_val_finger = int(finger).to_bytes(1, 'big')
+        data += bytes_val_finger
+        bytes_val_pos = int(position).to_bytes(2, 'big')
+        data += bytes_val_pos
+        self.send_data(data)
+        
+    def send_gesture_direct(self, gesture):
+        data = b'\x02'
+        bytes_val = int(gesture).to_bytes(1, 'big')
+        data += bytes_val
+        self.send_data(data)
 
     def read_data(self):
         value = b''
@@ -54,29 +87,8 @@ class SmartHandControl:
         if self.serial and self.use_serial:
             self.serial.write(data)
 
-    def send_gesture(self, gesture):
-        data =  b'\x02'
-        bytes_val = int(gesture).to_bytes(1, 'big')
-        data += bytes_val
-        self.send_data(data)
-
-    def send_finger_position(self, finger, position):
-        data =  b'\x01'
-        bytes_val_finger = int(finger).to_bytes(1, 'big')
-        data += bytes_val_finger
-        bytes_val_pos = int(position).to_bytes(2, 'big')
-        data += bytes_val_pos
-        self.send_data(data)
-
     def toggle_led_rpi(self):
         self.send_data("toggle")  
 
     def blink_led_rpi(self):
         self.send_data("blink")
-
-    def disconnect(self):
-        if self.device and self.use_ble:
-            self.device.stop_notify(CHAR_UART_TX)
-            self.device.disconnect()
-        if self.serial and self.use_serial:
-            self.serial.close()
