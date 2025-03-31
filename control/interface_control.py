@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from control.zeus_control import ZeusControl
 from control.smart_hand_control import SmartHandControl
+from control.psyonic_control import PsyonicHandControl
 
 class HandInterface(ABC):
     @abstractmethod
@@ -40,6 +41,8 @@ class InterfaceControl:
             self.hand = ZeusControl(**self.kwargs)
         elif self.hand_type == "smart":
             self.hand = SmartHandControl(**self.kwargs)
+        elif self.hand_type == "psyonic":
+            self.hand = PsyonicHandControl(**self.kwargs)
         else:
             raise ValueError(f"Unsupported hand type: {self.hand_type}")
 
