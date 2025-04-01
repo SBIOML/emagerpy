@@ -52,9 +52,8 @@ class SerialCommunication:
     def write(self, message):
         if isinstance(message, str):
             message = (message + "\n").encode()
-        else:
-            message = bytes(message)
-            message = (message.decode() + "\n").encode()
+        elif isinstance(message, bytes) or isinstance(message, bytearray):
+            message = bytes(message) + b'\n'
         if self.serial is not None:
             self.serial.write(message)
             self.read()

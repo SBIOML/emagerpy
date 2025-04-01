@@ -1,6 +1,6 @@
 from control.ble_client import BLEDevice, scan_and_connect
 from control.serial_com import SerialCommunication
-from control.interface_control import HandInterface
+from control.abstract_hand_control import HandInterface
 import time
 from control.zeus_control import decode_gesture
 

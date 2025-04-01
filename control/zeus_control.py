@@ -2,7 +2,7 @@ import asyncio
 from control.ble_client import BLEDevice, scan_and_connect
 from control.gesture_decoder import decode_gesture
 from control.constants import *
-from control.interface_control import HandInterface
+from control.abstract_hand_control import HandInterface
 import time
 
 SERVICE_UART = "6E400001-C352-11E5-953D-0002A5D5C51B"

@@ -1,4 +1,4 @@
-from control.interface_control import HandInterface
+from control.abstract_hand_control import HandInterface
 from control.serial_com import SerialCommunication
 from control.gesture_decoder import decode_gesture
 import time
@@ -16,7 +16,14 @@ class PsyonicHandControl(HandInterface):
     CMD_INIT = 0x01
     CMD_FINGER_POS = 0x10
     
-    def __init__(self, address=0x50, baudrate=460800, port=None, stuffing=True):
+    DEGREES_CONSTANT = 32767 / 150
+    DEGREES_CONSTANT_INV = 150 / 32767
+    VELOCITY_CONSTANT = 32767 / 3000
+    VELOCITY_CONSTANT_INV = 3000 / 32767
+    LIMIT = 32767
+    VOLTAGE_LIMIT = 3546
+    
+    def __init__(self, address=0x50, baudrate=460800, port=None, stuffing=False):
         """
         Initialize the Psyonic hand controller.
         
@@ -45,7 +52,7 @@ class PsyonicHandControl(HandInterface):
             print(f"Connected to Psyonic hand on {self.serial.port}")
             
             # Initialize the hand
-            self._send_init_command()
+            # self._send_init_command()
             
         except Exception as e:
             print(f"Error connecting to Psyonic hand: {e}")
@@ -122,29 +129,36 @@ class PsyonicHandControl(HandInterface):
 
         return unstuffed_packet
 
-    def _send_finger_positions(self, positions):
+    def _send_finger_positions(self, positions: list[int]):
         """Send finger positions using the proper protocol."""
         # Create command payload
-        payload = struct.pack('BBBBB', *positions)
-        
+        positions.append(0) # Thumb Rotation
+        print(f"Positions: {positions}")
         # Create command packet
-        packet = self._create_packet(self.CMD_FINGER_POS, payload)
+        packet = self._create_packet(self.CMD_FINGER_POS, positions)
+        print(f"Packet: {packet}")
         
         # Send the packet
         self._send_packet(packet)
 
-    def _create_packet(self, cmd_type, payload):
-        """Create a properly formatted packet with checksum."""
-        # Calculate packet length
+    def _create_packet(self, cmd_type, values):
+        """Create a properly formatted packet with checksum. must have 6 values"""
+        if len(values) != 6:
+            raise ValueError("Packets must have 6 values")
         
         # Create packet header
-        packet = bytearray([self.address, cmd_type])
+        packet = list(struct.pack("<BB", self.address, cmd_type))
         
         # Add payload
-        packet.extend(payload)
+        for p in values:
+            p_scaled = max(min(p * self.DEGREES_CONSTANT, self.LIMIT), -self.LIMIT)
+            p_bytes = struct.pack("<h", int(p_scaled))
+            for b in p_bytes:
+                packet.append(b)
+        
         
         # Calculate and add checksum
-        checksum = (-sum(packet[1:])) & 0xFF
+        checksum = -sum(packet) & 0xFF
         packet.append(checksum)
         
         return packet

@@ -1,32 +1,14 @@
-from abc import ABC, abstractmethod
 from control.zeus_control import ZeusControl
 from control.smart_hand_control import SmartHandControl
 from control.psyonic_control import PsyonicHandControl
 
-class HandInterface(ABC):
-    @abstractmethod
-    def connect(self):
-        pass
-
-    @abstractmethod
-    def disconnect(self):
-        pass
-
-    @abstractmethod
-    def send_gesture(self, gesture):
-        pass
-
-    @abstractmethod
-    def send_finger_position(self, finger, position):
-        pass
-
 class InterfaceControl:
-    def __init__(self, hand_type="zeus", **kwargs):
+    def __init__(self, hand_type, **kwargs):
         """
         Initialize the interface control with the specified hand type.
         
         Args:
-            hand_type (str): Type of hand to use ("zeus" or "smart")
+            hand_type (str): Type of hand to use ("zeus" or "smart" or "psyonic")
             **kwargs: Additional arguments to pass to the hand controller
         """
         self.hand_type = hand_type.lower()
