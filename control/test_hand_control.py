@@ -62,28 +62,9 @@ def test_hand(hand_type, **kwargs):
     except Exception as e:
         print(f"Error testing {hand_type} hand: {e}")
 
-def test_zeus_hand():
-    test_hand("zeus")
-
-def test_smart_hand():
-    test_hand("smart", mode="BLE")
-
-def test_psyonic_hand():
-    test_hand("psyonic")
-
 if __name__ == "__main__":
     print("Starting hand control tests...")
     
-    # Test Zeus hand
-    # test_zeus_hand()
-    
-    # Test psyonics hand
-    test_psyonic_hand()
-    
-    # Wait between tests
-    time.sleep(2)
-    
-    # Test Smart hand
-    test_smart_hand()
+    test_hand("psyonic", stuffing=False)
     
     print("\nAll tests completed!") 
