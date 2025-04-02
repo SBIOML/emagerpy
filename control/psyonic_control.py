@@ -1,6 +1,7 @@
 from control.abstract_hand_control import HandInterface
 from control.serial_com import SerialCommunication
 from control.gesture_decoder import decode_gesture
+import serial
 import time
 import struct
 from enum import Enum
@@ -23,7 +24,7 @@ class PsyonicHandControl(HandInterface):
     LIMIT = 32767
     VOLTAGE_LIMIT = 3546
     
-    def __init__(self, address=0x50, baudrate=460800, port=None, stuffing=False):
+    def __init__(self, address=0x50, baudrate=460800, port=None, stuffing=True):
         """
         Initialize the Psyonic hand controller.
         
@@ -46,7 +47,7 @@ class PsyonicHandControl(HandInterface):
             
         try:
             print(f"Connecting to Psyonic hand via USB to TTL on {self.port}")
-            self.serial = SerialCommunication(port=self.port, baud_rate=self.baudrate)
+            self.serial = SerialCommunication(port=self.port, baud_rate=self.baudrate, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE)
             self.serial.open()
             self.connected = True
             print(f"Connected to Psyonic hand on {self.serial.port}")
@@ -85,11 +86,11 @@ class PsyonicHandControl(HandInterface):
         
         # Scale positions from 0-1000 to 0-100 for Psyonic hand
         positions = [
-            int(thumb_pos / 10),
             int(index_pos / 10),
             int(middle_pos / 10),
             int(ring_pos / 10),
-            int(little_pos / 10)
+            int(little_pos / 10),
+            int(thumb_pos / 10),
         ]
         
         # Send all finger positions in one command
@@ -169,7 +170,7 @@ class PsyonicHandControl(HandInterface):
             stuffed_packet = ppp_stuff(packet)
         else:
             stuffed_packet = packet
-        
+        print(f" Sending Packet (hex): {[hex(b) for b in bytearray(packet)]}")
         self.serial.write(stuffed_packet)
         time.sleep(0.1)  # Small delay to ensure command is processed
 

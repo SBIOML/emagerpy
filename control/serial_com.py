@@ -10,10 +10,13 @@ class SerialCommunication:
         # "PSOC": (0x04b4, 0xf155),
     }
 
-    def __init__(self, port=None, baud_rate=115200):
+    def __init__(self, serial=None, port=None, baud_rate=115200, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, timeout=1.5):
         self.port = port
         self.baud_rate = baud_rate
-        self.serial = None
+        self.parity = parity
+        self.stopbits = stopbits
+        self.timeout = timeout
+        self.serial = serial
         self.device_name = None
 
     def _find_port(self):
@@ -39,7 +42,7 @@ class SerialCommunication:
         if self.port is None:
             self.port, self.device_name = self._find_port()
         if self.serial is None:
-            self.serial = serial.Serial(port=self.port, baudrate=self.baud_rate, parity=serial.PARITY_EVEN, stopbits=serial.STOPBITS_ONE, timeout=1.5)
+            self.serial = serial.Serial(port=self.port, baudrate=self.baud_rate, parity=self.parity, stopbits=self.stopbits, timeout=self.timeout)
         if not self.serial.is_open:
             self.serial.open()
         sleep(0.2)

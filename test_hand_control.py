@@ -24,7 +24,7 @@ def test_hand(hand_type, **kwargs):
         fingers = [0, 1, 2, 3, 4]  # thumb to little finger
         for finger in fingers:
             print(f"Moving finger {finger} to position 50")
-            hand.send_finger_position(finger, 50)
+            hand.send_finger_position(finger, 100)
             time.sleep(0.5)
             
         # Test hand-specific features
