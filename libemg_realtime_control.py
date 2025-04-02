@@ -21,7 +21,7 @@ def run_predicator_process(conn: Connection=None):
 def run_controller_process(conn: Connection=None):
     try:
         
-        comm_controller = InterfaceControl(hand_type="smart")
+        comm_controller = InterfaceControl(hand_type="psyonic")
         comm_controller.connect()
         
         # Main loop to read input from stdin

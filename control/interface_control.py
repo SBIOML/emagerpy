@@ -52,7 +52,7 @@ class InterfaceControl:
             self.hand.send_gesture(gesture)
 
     def send_finger_position(self, finger, position):
-        """Send a specific finger position to the hand."""
+        """Send a specific finger position to the hand. finger is 0-4, position is 0-100"""
         if not self.hand:
             raise RuntimeError("Hand not initialized. Call connect() first.")
         self.hand.send_finger_position(finger, position)

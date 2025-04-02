@@ -43,6 +43,8 @@ class ZeusControl(HandInterface):
         self.send_finger_position(4, little_finger_pos)
 
     def send_finger_position(self, finger, position):
+        # finger is 0-4, position is 0-100
+        position = position * 10
         finger_bytes = int(finger).to_bytes(1, 'big')
         position_bytes = int(position).to_bytes(4, 'big')
         data = bytes(finger_bytes + position_bytes)

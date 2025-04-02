@@ -7,10 +7,10 @@ def log(message, mode=Logger.INFO):
     print(message)
 
 # FINGER POSITIONS PREDEFINED
-NUTRAL_FINGER_POS = 250
+NUTRAL_FINGER_POS = 25
 OPEN_FIGER_POS = 0
-CLOSE_FIGER_POS = 1000
-HALF_OPEN_FIGER_POS = 500
+CLOSE_FIGER_POS = 100
+HALF_OPEN_FIGER_POS = 50
 
 try:
     gestures_dict = gj.get_gestures_dict(MEDIA_PATH)

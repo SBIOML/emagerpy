@@ -58,6 +58,8 @@ class SmartHandControl(HandInterface):
         self.send_finger_position(4, little_finger_pos)
         
     def send_finger_position(self, finger, position):
+        # finger is 0-4, position is 0-100
+        position = position * 10
         data = b'\x01'
         bytes_val_finger = int(finger).to_bytes(1, 'big')
         data += bytes_val_finger
