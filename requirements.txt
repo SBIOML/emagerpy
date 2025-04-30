@@ -1,0 +1,10 @@
+numpy
+scipy
+pyqt6
+pyqtgraph
+bleak
+pyserial
+torch
+lightning
+brevitas
+libemg==2.0.0
