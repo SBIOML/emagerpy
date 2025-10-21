@@ -21,7 +21,7 @@ from config import *
 eutils.set_logging()
 
 
-def predicator(use_gui:bool=True, conn:Connection | None = None, delay:float=0.01):
+def predicator(use_gui:bool=True, conn:Connection | None = None, delay:float=0.01, timeout_delay:float=0.5):
 
     # Create data handler and streamer
     p, smi = emager_streamer()
@@ -68,7 +68,8 @@ def predicator(use_gui:bool=True, conn:Connection | None = None, delay:float=0.0
     gui = RealTimeGestureUi(files)
     
     stop_event = threading.Event()
-    updateLabelProcess = threading.Thread(target=update_labels_process, args=(stop_event, gui, conn, delay))
+    updateLabelProcess = threading.Thread(target=update_labels_process, args=(
+        stop_event, gui, conn, delay, timeout_delay))
 
     try:
         print("Starting classification...")
@@ -95,4 +96,4 @@ def predicator(use_gui:bool=True, conn:Connection | None = None, delay:float=0.0
 
 
 if __name__ == "__main__":
-    predicator(use_gui=True, conn=None, delay=0.01)
+    predicator(use_gui=True, conn=None, delay=0.01, timeout_delay=0.5)

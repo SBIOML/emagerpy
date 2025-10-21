@@ -95,7 +95,7 @@ from multiprocessing.connection import Connection
 import time
 from config import *
 
-def update_labels_process(stop_event:threading.Event, gui:RealTimeGestureUi, conn:Connection | None = None, delay:float=0.01):
+def update_labels_process(stop_event:threading.Event, gui:RealTimeGestureUi, conn:Connection | None = None, delay:float=0.01, timeout_delay:float=0.5):
     '''
     Update the labels of the gui and send the data to the controller via conn if it is not None
     stop_event: threading.Event = threading.Event()
@@ -131,7 +131,7 @@ def update_labels_process(stop_event:threading.Event, gui:RealTimeGestureUi, con
         
         # Only process and send if prediction has changed or enough time has passed
         current_time = time.time()
-        if index == last_prediction and (current_time - last_sent_time) < 0.05:
+        if index == last_prediction and (current_time - last_sent_time) < timeout_delay:
             time.sleep(delay)
             continue
         
