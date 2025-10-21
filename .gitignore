@@ -2,6 +2,7 @@
 *.log
 lightning_logs/
 media-test/
+Datasets/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
