@@ -1,6 +1,7 @@
 from control.abstract_hand_control import HandInterface
 from control.serial_com import SerialCommunication
 from control.gesture_decoder import decode_gesture
+from utils.utils import print_packet
 import serial
 import time
 import struct
@@ -17,6 +18,9 @@ class PsyonicHandControl(HandInterface):
     CMD_INIT = 0x01
     CMD_FINGER_POS = 0x10
     
+    LIMIT_ANGLE = 100
+    LIMIT_ANGLE_ROTATION = 120
+
     DEGREES_CONSTANT = 32767 / 150
     DEGREES_CONSTANT_INV = 150 / 32767
     VELOCITY_CONSTANT = 32767 / 3000
@@ -24,7 +28,7 @@ class PsyonicHandControl(HandInterface):
     LIMIT = 32767
     VOLTAGE_LIMIT = 3546
     
-    def __init__(self, address=0x50, baudrate=460800, port=None, stuffing=True):
+    def __init__(self, address=0x50, baudrate=460800, port=None, stuffing=True, print_debug=False):
         """
         Initialize the Psyonic hand controller.
         
@@ -39,6 +43,7 @@ class PsyonicHandControl(HandInterface):
         self.serial = None
         self.connected = False
         self.stuffing = stuffing
+        self.print_debug = print_debug
 
     def connect(self):
         """Connect to the Psyonic hand via serial communication."""
@@ -58,8 +63,8 @@ class PsyonicHandControl(HandInterface):
         except Exception as e:
             print(f"Error connecting to Psyonic hand: {e}")
             print("Make sure connections are correct:")
-            print("  TX (USB to TTL) → RX (Psyonic hand)")
-            print("  RX (USB to TTL) → TX (Psyonic hand)")
+            print("  TX (USB to TTL) → RX/SDA (Psyonic hand)")
+            print("  RX (USB to TTL) → TX/SCL (Psyonic hand)")
             print("  GND (USB to TTL) → GND (Psyonic hand)")
             self.connected = False
             raise
@@ -82,15 +87,16 @@ class PsyonicHandControl(HandInterface):
             raise RuntimeError("Not connected to Psyonic hand")
             
         # Get finger positions from our gesture decoder
-        thumb_pos, index_pos, middle_pos, ring_pos, little_pos = decode_gesture(gesture)
+        thumb_pos, index_pos, middle_pos, ring_pos, little_pos, thumb_rotation_pos = decode_gesture(gesture)
         
-        # Scale positions from 0-1000 to 0-100 for Psyonic hand
+        # Scale positions from 0-1500 to 0-150 for Psyonic hand
         positions = [
             int(index_pos / 10),
             int(middle_pos / 10),
             int(ring_pos / 10),
             int(little_pos / 10),
             int(thumb_pos / 10),
+            int(-thumb_rotation_pos / 10)
         ]
         
         # Send all finger positions in one command
@@ -102,26 +108,32 @@ class PsyonicHandControl(HandInterface):
         NEEDS TO BE FIXED (need all prior finger positions)
         
         Args:
-            finger (int): Finger index (0-4)
+            finger (int): Finger index (0-5) (thumb to little finger + thumb rotation)
             position (int): Position value (0-100)
         """
         if not self.connected:
             raise RuntimeError("Not connected to Psyonic hand")
             
-        if not 0 <= finger <= 4:
-            raise ValueError("Finger index must be between 0 and 4")
-            
-        if not 0 <= position <= 100:
-            raise ValueError("Position must be between 0 and 100")
-            
+        if not 0 <= finger <= 5:
+            raise ValueError("Finger index must be between 0 and 5")
+
+        if finger == 5:  # Thumb rotation
+            if not (0 <= position <= self.LIMIT_ANGLE_ROTATION):
+                raise ValueError(f"Position must be between 0 and {self.LIMIT_ANGLE_ROTATION}")
+        else:
+            if not (0 <= position <= self.LIMIT_ANGLE):
+                raise ValueError(f"Position must be between 0 and {self.LIMIT_ANGLE}")
+
         # Create positions array with only one finger set
-        positions = [0] * 5
+        positions = [0] * 6
         positions[finger] = position
         self._send_finger_positions(positions)
         
     def read_data(self):
         """Read a packet from the Psyonic hand."""
+        print("Reading data from Psyonic hand...")
         packet = self.serial.read()
+        print(f" Raw Packet (hex): {[hex(b) for b in bytearray(packet)]}")
         if self.stuffing:
             ppp = PPPUnstuff()
             unstuffed_packet = ppp.unstuff_packet(packet)
@@ -133,11 +145,11 @@ class PsyonicHandControl(HandInterface):
     def _send_finger_positions(self, positions: list[int]):
         """Send finger positions using the proper protocol."""
         # Create command payload
-        positions.append(0) # Thumb Rotation
+        # positions.append(0) # Thumb Rotation
         print(f"Positions: {positions}")
         # Create command packet
         packet = self._create_packet(self.CMD_FINGER_POS, positions)
-        print(f"Packet: {packet}")
+        # print(f"Packet: {packet}")
         
         # Send the packet
         self._send_packet(packet)
@@ -157,21 +169,21 @@ class PsyonicHandControl(HandInterface):
             for b in p_bytes:
                 packet.append(b)
         
-        
         # Calculate and add checksum
         checksum = -sum(packet) & 0xFF
         packet.append(checksum)
+        
+        if self.stuffing:
+            packet = ppp_stuff(packet)
         
         return packet
 
     def _send_packet(self, packet):
         """Send a packet with PPP stuffing."""
-        if self.stuffing:
-            stuffed_packet = ppp_stuff(packet)
-        else:
-            stuffed_packet = packet
-        print(f" Sending Packet (hex): {[hex(b) for b in bytearray(packet)]}")
-        self.serial.write(stuffed_packet)
+        if self.print_debug:
+            print(f"Sending Packet (hex): {[hex(b) for b in bytearray(packet)]}")
+            print_packet(packet, stuffed=self.stuffing)
+        self.serial.write(packet)
         time.sleep(0.1)  # Small delay to ensure command is processed
 
     def _send_init_command(self):

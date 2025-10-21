@@ -7,10 +7,13 @@ def log(message, mode=Logger.INFO):
     print(message)
 
 # FINGER POSITIONS PREDEFINED
-NUTRAL_FINGER_POS = 25
+NUTRAL_FINGER_POS = 250
 OPEN_FIGER_POS = 0
-CLOSE_FIGER_POS = 100
-HALF_OPEN_FIGER_POS = 50
+CLOSE_FIGER_POS = 1000
+HALF_OPEN_FIGER_POS = 500
+FRONT_ROTATION_POS = 0
+HALF_ROTATION_POS = 0
+SIDE_ROTATION_POS = 0
 
 try:
     gestures_dict = gj.get_gestures_dict(MEDIA_PATH)
@@ -31,6 +34,7 @@ def decode_gesture(gesture):
     middle_finger_pos = NUTRAL_FINGER_POS
     ring_finger_pos = NUTRAL_FINGER_POS
     little_finger_pos = NUTRAL_FINGER_POS
+    thumb_rotation_pos = SIDE_ROTATION_POS
 
     if gesture == Gesture.NO_MOTION:
         thumb_finger_pos = NUTRAL_FINGER_POS
@@ -38,13 +42,15 @@ def decode_gesture(gesture):
         middle_finger_pos = NUTRAL_FINGER_POS
         ring_finger_pos = NUTRAL_FINGER_POS
         little_finger_pos = NUTRAL_FINGER_POS
+        thumb_rotation_pos = SIDE_ROTATION_POS
 
     elif gesture == Gesture.HAND_CLOSE:
-        thumb_finger_pos = CLOSE_FIGER_POS
+        thumb_finger_pos = HALF_OPEN_FIGER_POS
         index_finger_pos = CLOSE_FIGER_POS
         middle_finger_pos = CLOSE_FIGER_POS
         ring_finger_pos = CLOSE_FIGER_POS
         little_finger_pos = CLOSE_FIGER_POS
+        thumb_rotation_pos = FRONT_ROTATION_POS
 
     elif gesture == Gesture.HAND_OPEN:
         thumb_finger_pos = OPEN_FIGER_POS
@@ -52,6 +58,7 @@ def decode_gesture(gesture):
         middle_finger_pos = OPEN_FIGER_POS
         ring_finger_pos = OPEN_FIGER_POS
         little_finger_pos = OPEN_FIGER_POS
+        thumb_rotation_pos = SIDE_ROTATION_POS
 
     elif gesture == Gesture.OK:
         thumb_finger_pos = HALF_OPEN_FIGER_POS
@@ -59,6 +66,7 @@ def decode_gesture(gesture):
         middle_finger_pos = OPEN_FIGER_POS
         ring_finger_pos = OPEN_FIGER_POS
         little_finger_pos = OPEN_FIGER_POS
+        thumb_rotation_pos = FRONT_ROTATION_POS
 
     elif gesture == Gesture.INDEX_EXTENSION:
         thumb_finger_pos = CLOSE_FIGER_POS
@@ -66,13 +74,15 @@ def decode_gesture(gesture):
         middle_finger_pos = CLOSE_FIGER_POS
         ring_finger_pos = CLOSE_FIGER_POS
         little_finger_pos = CLOSE_FIGER_POS
+        thumb_rotation_pos = HALF_ROTATION_POS
 
     elif gesture == Gesture.PEACE:
-        thumb_finger_pos = CLOSE_FIGER_POS
+        thumb_finger_pos = NUTRAL_FINGER_POS
         index_finger_pos = OPEN_FIGER_POS
         middle_finger_pos = OPEN_FIGER_POS
         ring_finger_pos = CLOSE_FIGER_POS
         little_finger_pos = CLOSE_FIGER_POS
+        thumb_rotation_pos = HALF_ROTATION_POS
 
     elif gesture == Gesture.THUMBS_UP:
         thumb_finger_pos = OPEN_FIGER_POS
@@ -80,9 +90,10 @@ def decode_gesture(gesture):
         middle_finger_pos = CLOSE_FIGER_POS
         ring_finger_pos = CLOSE_FIGER_POS
         little_finger_pos = CLOSE_FIGER_POS
+        thumb_rotation_pos = SIDE_ROTATION_POS
 
     else:
         log("Unknown gesture", mode=Logger.WARNING)
         pass
 
-    return thumb_finger_pos, index_finger_pos, middle_finger_pos, ring_finger_pos, little_finger_pos
+    return thumb_finger_pos, index_finger_pos, middle_finger_pos, ring_finger_pos, little_finger_pos, thumb_rotation_pos
