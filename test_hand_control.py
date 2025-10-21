@@ -1,5 +1,9 @@
+print("Loading hand control test...")
 from control.interface_control import InterfaceControl
 import time
+
+from utils.utils import print_packet
+from config import *
 
 def test_hand(hand_type, **kwargs):
     print(f"\n=== Testing {hand_type.capitalize()} Hand ===")
@@ -13,19 +17,25 @@ def test_hand(hand_type, **kwargs):
         
         # Test basic functionality
         print("\nTesting basic gestures...")
-        gestures = ["Peace", "Hand_Close", "Hand_Open", "OK"]
+        # gestures = ["Peace", "Hand_Close", "Hand_Open", "OK"]
+        gestures = CLASSES  # Using gesture indices from config
         for gesture in gestures:
             print(f"Sending gesture: {gesture}")
             hand.send_gesture(gesture)
             time.sleep(1)  # Wait between gestures
+            # print("Reading data...")
+            # packet = hand.read_data()
+            # print_packet(packet, stuffed=True)
+            # time.sleep(0.5) 
+            
             
         # Test individual finger control
-        print("\nTesting individual finger control...")
-        fingers = [0, 1, 2, 3, 4]  # thumb to little finger
-        for finger in fingers:
-            print(f"Moving finger {finger} to position 50")
-            hand.send_finger_position(finger, 100)
-            time.sleep(0.5)
+        # print("\nTesting individual finger control...")
+        # for finger in range(6):
+        #     print(f"Moving finger {finger} to position 50")
+        #     hand.send_finger_position(finger, 100)
+        #     time.sleep(0.2)
+        
             
         # Test hand-specific features
         if hand_type == "zeus":

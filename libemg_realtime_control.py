@@ -14,7 +14,7 @@ USE_GUI = True
 
 # PREDICTOR
 def run_predicator_process(conn: Connection=None):
-    predicator(use_gui=USE_GUI, conn=conn, delay=0.01)
+    predicator(use_gui=USE_GUI, conn=conn, delay=1.75)
 
 
 # COMMUNICATOR
@@ -23,6 +23,9 @@ def run_controller_process(conn: Connection=None):
         
         comm_controller = InterfaceControl(hand_type="psyonic")
         comm_controller.connect()
+        
+        gestures_dict = gjutils.get_gestures_dict(MEDIA_PATH)
+        images = gjutils.get_images_list(MEDIA_PATH)
         
         # Main loop to read input from stdin
         print("Communicator waiting for data...")
@@ -45,10 +48,10 @@ def run_controller_process(conn: Connection=None):
             # Process the input 
             try:
                 input_pred = int(input_data["prediction"])
-                timestamp = input_data["timestamp"]
+                # timestamp = input_data["timestamp"]
                 if int(input_pred) not in range(NUM_CLASSES): 
                     input_pred = 0
-                gesture = gjutils.get_label_from_index(input_pred, MEDIA_PATH)
+                gesture = gjutils.get_label_from_index(input_pred, images, gestures_dict)
 
                 print(f"Input: pred({input_pred})  gest[{gesture}]: {input_data}" + " "*10 + "... received data /  sending gesture ...")
             
@@ -58,7 +61,7 @@ def run_controller_process(conn: Connection=None):
 
             # Send the gesture to the hand
             comm_controller.send_gesture(gesture)
-            
+            print("="*50)
             
     except Exception as e:
         print(f"Error communicator: {e}")

@@ -116,16 +116,18 @@ def update_labels_process(stop_event:threading.Event, gui:RealTimeGestureUi, con
         
         # Get predictions using the controller
         predictions = ctrl.get_data(['predictions'])
-        action = ctrl._get_action()
+        # action = ctrl._get_action()
         # print(f"{predictions} (predictions)")
         # print(f"action: {action}")
         if predictions is None:
             time.sleep(delay)  # Wait a bit if no data
             continue
         
+        ts = time.time()
+        timestamp = time.strftime("%H:%M:%S", time.localtime(ts)) + f".{int((ts - int(ts)) * 1000):03d}"
         output_data = {
             "prediction": int(predictions[0]),
-            "timestamp": time.time()
+            "timestamp": timestamp
         }
         if output_data is None:
             time.sleep(delay)

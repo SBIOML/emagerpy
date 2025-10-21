@@ -43,6 +43,7 @@ def predicator(use_gui:bool=True, conn:Connection | None = None, delay:float=0.0
 
     # Verify model loading and state dict compatibility
     model = etm.EmagerCNN((4, 16), NUM_CLASSES, -1)
+    print("Loading model from: ", MODEL_PATH)
     try:
         model.load_state_dict(torch.load(MODEL_PATH))
         model.eval()
