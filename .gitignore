@@ -2,8 +2,6 @@
 *.log
 lightning_logs/
 media-test/
-.venv/
-.venv2/
 Datasets/
 
 # Byte-compiled / optimized / DLL files
@@ -15,6 +13,7 @@ __pycache__/
 *.so
 
 # Distribution / packaging
+.venv*
 .Python
 build/
 develop-eggs/

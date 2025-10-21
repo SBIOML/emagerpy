@@ -5,7 +5,7 @@ import torch.nn.functional as F
 
 import lightning as L
 from lightning.pytorch.callbacks.early_stopping import EarlyStopping
-from brevitas import quant
+# from brevitas import quant
 import brevitas.nn as qnn
 
 from sklearn.metrics import accuracy_score
