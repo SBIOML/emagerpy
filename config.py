@@ -6,15 +6,23 @@ NUM_REPS = 5
 REP_TIME = 5
 REST_TIME = 1
 
+# Data acquisition and model parameters
+MAJORITY_VOTE=50
 WINDOW_SIZE = 200
 WINDOW_INCREMENT = 10
 EPOCH = 10
 SAMPLING = 1010
-MAJORITY_VOTE=50
-SAMPLING=1010
 FILTER = False
 VIRTUAL = False
 PORT = None
+
+# Controller and predictor settings
+USE_GUI = True
+POLL_SLEEP_DELAY = 0.001  # Sleep time to prevent busy waiting when polling for data
+PREDICTOR_DELAY = 0.01 # Changes the frequency of predictions
+PREDICTOR_TIMEOUT_DELAY = 0.5 # Timeout for waiting for new predictions
+SMOOTH_WINDOW = 1 # Set to 1 to disable smoothing (always use latest value)
+SMOOTH_METHOD = 'mode' # 'mode' recommended for categorical gestures; 'mean' for numeric smoothing
 
 BASE_PATH = "./Datasets/"
 SESSION = "D0"

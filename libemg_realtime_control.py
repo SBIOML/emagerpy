@@ -12,17 +12,6 @@ from statistics import mean
 
 eutils.set_logging()
 
-USE_GUI = True
-
-POLL_SLEEP_DELAY = 0.001  # Sleep time to prevent busy waiting when polling for data
-PREDICTOR_DELAY = 0.01 # Changes the frequency of predictions
-PREDICTOR_TIMEOUT_DELAY = 0.5 # Timeout for waiting for new predictions
-
-# Controller-side smoothing buffer
-SMOOTH_WINDOW = 1 # Set to 1 to disable smoothing (always use latest value)
-SMOOTH_METHOD = 'mode' # 'mode' recommended for categorical gestures; 'mean' for numeric smoothing
-
-
 # PREDICTOR
 def run_predicator_process(conn: Connection=None):
     predicator(use_gui=USE_GUI, conn=conn, delay=PREDICTOR_DELAY, timeout_delay=PREDICTOR_TIMEOUT_DELAY)
