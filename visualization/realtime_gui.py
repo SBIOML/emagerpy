@@ -111,6 +111,10 @@ def update_labels_process(stop_event:threading.Event, gui:RealTimeGestureUi, con
     images = gjutils.get_images_list(MEDIA_PATH)
     ctrl = ClassifierController('predictions', NUM_CLASSES)
     
+    # Track last prediction to avoid sending duplicates
+    last_prediction = None
+    last_sent_time = 0
+    
     # Run thread until stop event
     while not stop_event.is_set():
         
@@ -123,17 +127,24 @@ def update_labels_process(stop_event:threading.Event, gui:RealTimeGestureUi, con
             time.sleep(delay)  # Wait a bit if no data
             continue
         
-        ts = time.time()
-        timestamp = time.strftime("%H:%M:%S", time.localtime(ts)) + f".{int((ts - int(ts)) * 1000):03d}"
-        output_data = {
-            "prediction": int(predictions[0]),
-            "timestamp": timestamp
-        }
-        if output_data is None:
+        index = int(predictions[0])
+        
+        # Only process and send if prediction has changed or enough time has passed
+        current_time = time.time()
+        if index == last_prediction and (current_time - last_sent_time) < 0.1:
             time.sleep(delay)
             continue
         
-        index = int(predictions[0])
+        last_prediction = index
+        last_sent_time = current_time
+        
+        ts = current_time
+        timestamp = time.strftime("%H:%M:%S", time.localtime(ts)) + f".{int((ts - int(ts)) * 1000):03d}"
+        output_data = {
+            "prediction": index,
+            "timestamp": timestamp
+        }
+        
         label = gjutils.get_label_from_index(index, images, gestures_dict)
 
         gui.update_label(label)

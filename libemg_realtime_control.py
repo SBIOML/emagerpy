@@ -14,7 +14,7 @@ USE_GUI = True
 
 # PREDICTOR
 def run_predicator_process(conn: Connection=None):
-    predicator(use_gui=USE_GUI, conn=conn, delay=1.75)
+    predicator(use_gui=USE_GUI, conn=conn, delay=0.01)
 
 
 # COMMUNICATOR
