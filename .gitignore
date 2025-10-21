@@ -2,6 +2,9 @@
 *.log
 lightning_logs/
 media-test/
+.venv/
+.venv2/
+Datasets/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
