@@ -6,6 +6,7 @@ from control.interface_control import InterfaceControl
 from multiprocessing.connection import Connection
 from multiprocessing import Lock, Process, Pipe
 from config import *
+import time
 
 eutils.set_logging()
 
@@ -34,7 +35,20 @@ def run_controller_process(conn: Connection=None):
             if conn is None:
                 input_data = input()
             else:
-                input_data = conn.recv()
+                # Drain the pipe buffer to get the most recent prediction
+                # This prevents backlog and ensures we're always processing the latest data
+                input_data = None
+                while conn.poll():  # Check if data is available without blocking
+                    try:
+                        input_data = conn.recv()  # Read available data
+                    except EOFError:
+                        print("Connection closed")
+                        return
+                
+                # If no data available, wait briefly and continue
+                if input_data is None:
+                    time.sleep(0.001)  # 1ms sleep to prevent busy waiting
+                    continue
 
             # Exit the loop if no more input is received
             if input_data is None or input_data == "":

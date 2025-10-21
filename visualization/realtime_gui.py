@@ -131,7 +131,7 @@ def update_labels_process(stop_event:threading.Event, gui:RealTimeGestureUi, con
         
         # Only process and send if prediction has changed or enough time has passed
         current_time = time.time()
-        if index == last_prediction and (current_time - last_sent_time) < 0.1:
+        if index == last_prediction and (current_time - last_sent_time) < 0.05:
             time.sleep(delay)
             continue
         
